@@ -1,0 +1,38 @@
+﻿<Window x:Class="CG_TASK_1.FilterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Filter Selection" Height="200" Width="300">
+    <Grid Background="#F0F0F0">
+        <!-- Filter selection controls -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Text="Select Filter" FontSize="18" FontWeight="Bold" Margin="10" HorizontalAlignment="Center"/>
+
+        <!-- ComboBox for selecting filters -->
+        <ComboBox x:Name="FilterComboBox" SelectedIndex="0" Width="250" Margin="10" Grid.Row="1"
+                  Background="White" BorderBrush="#999999" BorderThickness="1"
+                  HorizontalContentAlignment="Center">
+            <ComboBoxItem Content="Select Filter"/>
+            <ComboBoxItem Content="Inversion"/>
+            <ComboBoxItem Content="Brightness Correction"/>
+            <ComboBoxItem Content="Contrast Enhancement"/>
+            <ComboBoxItem Content="Gamma Correction"/>
+            <ComboBoxItem Content="Blur"/>
+            <ComboBoxItem Content="Gaussian Blur"/>
+            <ComboBoxItem Content="Sharpen"/>
+            <ComboBoxItem Content="Edge Detection"/>
+            <ComboBoxItem Content="Emboss"/>
+        </ComboBox>
+        
+        <!-- Apply Filter button -->
+        <Button x:Name="ApplyFilterButton" Content="Apply Filter" Click="ApplyFilter_Click" Margin="10" Grid.Row="3" HorizontalAlignment="Center"
+                Padding="10" Background="#007ACC" Foreground="White" BorderThickness="0"
+                FontWeight="Bold" Width="120"/>
+    </Grid>
+</Window>
