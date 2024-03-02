@@ -28,6 +28,7 @@ namespace CG_TASK_1
         public static BitmapImage filteredBitmap;
         public static Bitmap originalImage;
         public static Bitmap filteredImage;
+        private Stack<Bitmap> filterStack = new Stack<Bitmap>();
 
         public MainWindow()
         {
@@ -43,11 +44,13 @@ namespace CG_TASK_1
             {
                 originalImage = new Bitmap(openFileDialog.FileName);
                 filteredImage = originalImage;
-                originalBitmap = ConvertBitmapToBitmapImage(originalImage);
+                originalBitmap = Filters.ConvertBitmapToBitmapImage(originalImage);
                 OriginalImage.Source = originalBitmap;
                 FilteredImage.Source = originalBitmap;
             }
+            filterStack.Clear();
         }
+
         private void SaveImage_Click(object sender, RoutedEventArgs e)
         {
             if (FilteredImage.Source != null)
@@ -71,8 +74,6 @@ namespace CG_TASK_1
             }
         }
 
-        private Stack<Bitmap> filterStack = new Stack<Bitmap>();
-
         private void OpenFilterWindow_Click(object sender, RoutedEventArgs e)
         {
             FilterWindow filterWindow = new FilterWindow();
@@ -85,8 +86,8 @@ namespace CG_TASK_1
         {
             if (originalBitmap != null)
             {
-                Bitmap filteredImageCopy = ApplyFilter(filteredImage, e.SelectedFilterIndex);
-                filteredBitmap = ConvertBitmapToBitmapImage(filteredImageCopy);
+                Bitmap filteredImageCopy = Filters.ApplyFilter(filteredImage, e.SelectedFilterIndex);
+                filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
                 FilteredImage.Source = filteredBitmap;
                 filterStack.Push(filteredImageCopy);
                 filteredImage = new Bitmap(filteredImageCopy);
@@ -105,7 +106,7 @@ namespace CG_TASK_1
 
                 if (filterStack.Count > 0)
                 {
-                    BitmapImage previousBitmap = ConvertBitmapToBitmapImage(filterStack.Peek());
+                    BitmapImage previousBitmap = Filters.ConvertBitmapToBitmapImage(filterStack.Peek());
                     FilteredImage.Source = previousBitmap;
                     filteredImage = new Bitmap(filterStack.Peek());
                 }
@@ -130,144 +131,5 @@ namespace CG_TASK_1
             filterStack.Clear();
         }
 
-        public Bitmap ApplyFilter(Bitmap image, int filterIndex)
-        {
-            switch (filterIndex)
-            {
-                case 0:
-                    return image;
-                case 1:
-                    return Filters.ApplyInversion(image);
-                case 2:
-                    return Filters.ApplyBrightnessCorrection(image);
-                case 3:
-                    return Filters.ApplyContrastEnhancement(image);
-                case 4:
-                    return Filters.ApplyGammaCorrection(image);
-                case 5:
-                    return Filters.ApplyBlur(image);
-                case 6:
-                    return Filters.ApplyGaussianBlur(image);
-                case 7:
-                    return Filters.ApplySharpen(image);
-                case 8:
-                    return Filters.ApplyEdgeDetection(image);
-                case 9:
-                    return Filters.ApplyEmboss(image);
-                default:
-                    return image;
-            }
-        }
-
-        public static Bitmap ApplyConvolution(Bitmap image, int[,] kernel)
-        {
-            BitmapSource bitmapSource = ConvertBitmapToBitmapSource(image);
-            BitmapSource filteredBitmapSource = ApplyConvolution(bitmapSource, kernel);
-            filteredImage = ConvertBitmapSourceToBitmap(filteredBitmapSource);
-            return filteredImage;
-        }
-
-        public static BitmapSource ApplyConvolution(BitmapSource original, int[,] kernel)
-        {
-            int width = original.PixelWidth;
-            int height = original.PixelHeight;
-            int totalWeight = 0;
-
-            WriteableBitmap resultBitmap = new WriteableBitmap(original);
-            Int32Rect rect = new Int32Rect(0, 0, width, height);
-            byte[] pixels = new byte[width * height * 4];
-
-            original.CopyPixels(rect, pixels, width * 4, 0);
-
-            resultBitmap.Lock();
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int[] colorSum = { 0, 0, 0 };
-
-                    for (int ky = -1; ky <= 1; ky++)
-                    {
-                        for (int kx = -1; kx <= 1; kx++)
-                        {
-                            int offsetX = Math.Max(0, Math.Min(width - 1, x + kx));
-                            int offsetY = Math.Max(0, Math.Min(height - 1, y + ky));
-
-                            int index = (offsetY * width + offsetX) * 4;
-                            colorSum[0] += pixels[index] * kernel[ky + 1, kx + 1];
-                            colorSum[1] += pixels[index + 1] * kernel[ky + 1, kx + 1];
-                            colorSum[2] += pixels[index + 2] * kernel[ky + 1, kx + 1];
-                            totalWeight += kernel[ky + 1, kx + 1];
-                        }
-                    }
-
-                    if (totalWeight > 0)
-                    {
-                        colorSum[0] /= totalWeight;
-                        colorSum[1] /= totalWeight;
-                        colorSum[2] /= totalWeight;
-                    }
-
-                    byte red = (byte)Math.Min(255, Math.Max(0, colorSum[0]));
-                    byte green = (byte)Math.Min(255, Math.Max(0, colorSum[1]));
-                    byte blue = (byte)Math.Min(255, Math.Max(0, colorSum[2]));
-
-                    int resultIndex = (y * width + x) * 4;
-                    resultBitmap.WritePixels(new Int32Rect(x, y, 1, 1), new byte[] { red, green, blue, 255 }, 4, 0);
-
-                    totalWeight = 0;
-                }
-            }
-
-            resultBitmap.Unlock();
-
-            return resultBitmap;
-        }
-
-        public static BitmapImage ConvertBitmapToBitmapImage(Bitmap bitmap)
-        {
-            using (MemoryStream memory = new MemoryStream())
-            {
-                bitmap.Save(memory, ImageFormat.Png);
-                memory.Position = 0;
-                BitmapImage bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memory;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                return bitmapImage;
-            }
-        }
-
-        public static BitmapSource ConvertBitmapToBitmapSource(Bitmap bitmap)
-        {
-            using (MemoryStream memory = new MemoryStream())
-            {
-                bitmap.Save(memory, ImageFormat.Bmp);
-                memory.Position = 0;
-
-                BitmapImage bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memory;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-
-                return bitmapImage;
-            }
-        }
-
-        public static Bitmap ConvertBitmapSourceToBitmap(BitmapSource bitmapSource)
-        {
-            Bitmap bitmap;
-            using (MemoryStream outStream = new MemoryStream())
-            {
-                BitmapEncoder encoder = new BmpBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
-                encoder.Save(outStream);
-                bitmap = new Bitmap(outStream);
-            }
-            return new Bitmap(bitmap);
-        }
     }
 }
