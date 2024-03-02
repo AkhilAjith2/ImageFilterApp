@@ -24,10 +24,10 @@ namespace CG_TASK_1
     /// </summary>
     public partial class MainWindow : Window
     {
-        private BitmapImage originalBitmap;
-        private BitmapImage filteredBitmap;
-        private Bitmap originalImage;
-        private Bitmap filteredImage;
+        public static BitmapImage originalBitmap;
+        public static BitmapImage filteredBitmap;
+        public static Bitmap originalImage;
+        public static Bitmap filteredImage;
 
         public MainWindow()
         {
@@ -81,7 +81,7 @@ namespace CG_TASK_1
             filterWindow.Show();
         }
 
-        private void FilterWindow_FilterApplied(object sender, FilterAppliedEventArgs e)
+        public void FilterWindow_FilterApplied(object sender, FilterAppliedEventArgs e)
         {
             if (originalBitmap != null)
             {
@@ -130,201 +130,36 @@ namespace CG_TASK_1
             filterStack.Clear();
         }
 
-        private Bitmap ApplyFilter(Bitmap image, int filterIndex)
+        public Bitmap ApplyFilter(Bitmap image, int filterIndex)
         {
             switch (filterIndex)
             {
                 case 0:
                     return image;
-                case 1: 
-                    return ApplyInversion(image);
-                case 2: 
-                    return ApplyBrightnessCorrection(image);
-                case 3: 
-                    return ApplyContrastEnhancement(image);
-                case 4: 
-                    return ApplyGammaCorrection(image);
-                case 5: 
-                    return ApplyBlur(image);
-                case 6: 
-                    return ApplyGaussianBlur(image);
-                case 7: 
-                    return ApplySharpen(image);
+                case 1:
+                    return Filters.ApplyInversion(image);
+                case 2:
+                    return Filters.ApplyBrightnessCorrection(image);
+                case 3:
+                    return Filters.ApplyContrastEnhancement(image);
+                case 4:
+                    return Filters.ApplyGammaCorrection(image);
+                case 5:
+                    return Filters.ApplyBlur(image);
+                case 6:
+                    return Filters.ApplyGaussianBlur(image);
+                case 7:
+                    return Filters.ApplySharpen(image);
                 case 8:
-                    return ApplyEdgeDetection(image);
+                    return Filters.ApplyEdgeDetection(image);
                 case 9:
-                    return ApplyEmboss(image);
+                    return Filters.ApplyEmboss(image);
                 default:
                     return image;
             }
         }
 
-        private int Clamp(int value)
-        {
-            return Math.Max(0, Math.Min(255, value));
-        }
-
-        private Bitmap ApplyInversion(Bitmap image)
-        {
-            Bitmap invertedImage = new Bitmap(image.Width, image.Height);
-
-            for (int y = 0; y < image.Height; y++)
-            {
-                for (int x = 0; x < image.Width; x++)
-                {
-                    System.Drawing.Color pixelColor = image.GetPixel(x, y);
-                    System.Drawing.Color invertedColor = System.Drawing.Color.FromArgb(
-                        255 - pixelColor.R,
-                        255 - pixelColor.G,
-                        255 - pixelColor.B
-                    );
-                    invertedImage.SetPixel(x, y, invertedColor);
-                }
-            }
-
-            return invertedImage;
-        }
-
-        private Bitmap ApplyBrightnessCorrection(Bitmap image)
-        {
-            Bitmap correctedImage = new Bitmap(image.Width, image.Height);
-
-            double brightness = 10;
-
-            for (int y = 0; y < image.Height; y++)
-            {
-                for (int x = 0; x < image.Width; x++)
-                {
-                    System.Drawing.Color pixelColor = image.GetPixel(x, y);
-
-                    int newRed = Clamp((int)(pixelColor.R + brightness));
-                    int newGreen = Clamp((int)(pixelColor.G + brightness));
-                    int newBlue = Clamp((int)(pixelColor.B + brightness));
-
-                    System.Drawing.Color newColor = System.Drawing.Color.FromArgb(pixelColor.A, newRed, newGreen, newBlue);
-                    correctedImage.SetPixel(x, y, newColor);
-                }
-            }
-
-            return correctedImage;
-        }
-
-        private Bitmap ApplyContrastEnhancement(Bitmap image)
-        {
-            Bitmap correctedImage = new Bitmap(image.Width, image.Height);
-
-            double contrast = 10;
-
-            double factor = (100.0f + contrast) / 100.0f;
-            factor *= factor;
-
-            for (int y = 0; y < image.Height; y++)
-            {
-                for (int x = 0; x < image.Width; x++)
-                {
-                    System.Drawing.Color pixelColor = image.GetPixel(x, y);
-
-                    double red = (((pixelColor.R / 255.0f) - 0.5f) * factor + 0.5f) * 255.0f;
-                    double green = (((pixelColor.G / 255.0f) - 0.5f) * factor + 0.5f) * 255.0f;
-                    double blue = (((pixelColor.B / 255.0f) - 0.5f) * factor + 0.5f) * 255.0f;
-
-                    int newRed = Clamp((int)red);
-                    int newGreen = Clamp((int)green);
-                    int newBlue = Clamp((int)blue);
-
-                    System.Drawing.Color newColor = System.Drawing.Color.FromArgb(pixelColor.A, newRed, newGreen, newBlue);
-                    correctedImage.SetPixel(x, y, newColor);
-                }
-            }
-
-            return correctedImage;
-        }
-
-        private Bitmap ApplyGammaCorrection(Bitmap image)
-        {
-            Bitmap correctedImage = new Bitmap(image.Width, image.Height);
-
-            double gamma = 1.2;
-
-            byte[] gammaCorrection = new byte[256];
-            for (int i = 0; i < 256; i++)
-            {
-                gammaCorrection[i] = (byte)Math.Min(255, (int)(255.0 * Math.Pow(i / 255.0, gamma) + 0.5));
-            }
-
-            for (int y = 0; y < image.Height; y++)
-            {
-                for (int x = 0; x < image.Width; x++)
-                {
-                    System.Drawing.Color pixelColor = image.GetPixel(x, y);
-                    int newRed = gammaCorrection[pixelColor.R];
-                    int newGreen = gammaCorrection[pixelColor.G];
-                    int newBlue = gammaCorrection[pixelColor.B];
-
-                    System.Drawing.Color newColor = System.Drawing.Color.FromArgb(pixelColor.A, newRed, newGreen, newBlue);
-                    correctedImage.SetPixel(x, y, newColor);
-                }
-            }
-
-            return correctedImage;
-        }
-
-        private Bitmap ApplyBlur(Bitmap image)
-        {
-            int[,] kernel = {
-                { 1, 1, 1 },
-                { 1, 1, 1 },
-                { 1, 1, 1 }
-            };
-
-            return ApplyConvolution(image, kernel);
-        }
-
-        private Bitmap ApplyGaussianBlur(Bitmap image)
-        {
-            int[,] kernel = {
-                { 0, 1, 0 },
-                { 1, 4, 1 },
-                { 0, 1, 0 }
-            };
-
-            return ApplyConvolution(image, kernel);
-        }
-
-        private Bitmap ApplySharpen(Bitmap image)
-        {
-            int[,] kernel = {
-                { 0, -1, 0 },
-                { -1, 5, -1 },
-                { 0, -1, 0 }
-            };
-
-            return ApplyConvolution(image, kernel);
-        }
-
-        private Bitmap ApplyEdgeDetection(Bitmap image)
-        {
-            int[,] kernel = {
-                { -1, -1, -1 },
-                { -1, 8, -1 },
-                { -1, -1, -1 }
-            };
-
-            return ApplyConvolution(image, kernel);
-        }
-
-        private Bitmap ApplyEmboss(Bitmap image)
-        {
-            int[,] kernel = {
-                { -2, -1, 0 },
-                { -1, 1, 1 },
-                { 0, 1, 2 }
-            };
-
-            return ApplyConvolution(image, kernel);
-        }
-
-        private Bitmap ApplyConvolution(Bitmap image, int[,] kernel)
+        public static Bitmap ApplyConvolution(Bitmap image, int[,] kernel)
         {
             BitmapSource bitmapSource = ConvertBitmapToBitmapSource(image);
             BitmapSource filteredBitmapSource = ApplyConvolution(bitmapSource, kernel);
@@ -332,7 +167,7 @@ namespace CG_TASK_1
             return filteredImage;
         }
 
-        private BitmapSource ApplyConvolution(BitmapSource original, int[,] kernel)
+        public static BitmapSource ApplyConvolution(BitmapSource original, int[,] kernel)
         {
             int width = original.PixelWidth;
             int height = original.PixelHeight;
@@ -356,7 +191,6 @@ namespace CG_TASK_1
                     {
                         for (int kx = -1; kx <= 1; kx++)
                         {
-                            // Handle pixels at the edge by mirroring
                             int offsetX = Math.Max(0, Math.Min(width - 1, x + kx));
                             int offsetY = Math.Max(0, Math.Min(height - 1, y + ky));
 
@@ -368,7 +202,6 @@ namespace CG_TASK_1
                         }
                     }
 
-                    // Normalize RGB values
                     if (totalWeight > 0)
                     {
                         colorSum[0] /= totalWeight;
@@ -376,7 +209,6 @@ namespace CG_TASK_1
                         colorSum[2] /= totalWeight;
                     }
 
-                    // Clip RGB values to [0, 255] range
                     byte red = (byte)Math.Min(255, Math.Max(0, colorSum[0]));
                     byte green = (byte)Math.Min(255, Math.Max(0, colorSum[1]));
                     byte blue = (byte)Math.Min(255, Math.Max(0, colorSum[2]));
@@ -384,7 +216,6 @@ namespace CG_TASK_1
                     int resultIndex = (y * width + x) * 4;
                     resultBitmap.WritePixels(new Int32Rect(x, y, 1, 1), new byte[] { red, green, blue, 255 }, 4, 0);
 
-                    // Reset total weight for the next pixel
                     totalWeight = 0;
                 }
             }
@@ -394,7 +225,7 @@ namespace CG_TASK_1
             return resultBitmap;
         }
 
-        private BitmapImage ConvertBitmapToBitmapImage(Bitmap bitmap)
+        public static BitmapImage ConvertBitmapToBitmapImage(Bitmap bitmap)
         {
             using (MemoryStream memory = new MemoryStream())
             {
@@ -409,7 +240,7 @@ namespace CG_TASK_1
             }
         }
 
-        private BitmapSource ConvertBitmapToBitmapSource(Bitmap bitmap)
+        public static BitmapSource ConvertBitmapToBitmapSource(Bitmap bitmap)
         {
             using (MemoryStream memory = new MemoryStream())
             {
@@ -426,7 +257,7 @@ namespace CG_TASK_1
             }
         }
 
-        private Bitmap ConvertBitmapSourceToBitmap(BitmapSource bitmapSource)
+        public static Bitmap ConvertBitmapSourceToBitmap(BitmapSource bitmapSource)
         {
             Bitmap bitmap;
             using (MemoryStream outStream = new MemoryStream())
