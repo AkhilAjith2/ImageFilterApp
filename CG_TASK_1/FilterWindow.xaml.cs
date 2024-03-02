@@ -20,7 +20,6 @@ namespace CG_TASK_1
     /// </summary>
     public partial class FilterWindow : Window
     {
-
         public event EventHandler<FilterAppliedEventArgs> FilterApplied;
         public FilterWindow()
         {
@@ -45,7 +44,6 @@ namespace CG_TASK_1
     public class FilterAppliedEventArgs : EventArgs
     {
         public int SelectedFilterIndex { get; }
-        public double FilterParameter { get; }
 
         public FilterAppliedEventArgs(int selectedFilterIndex)
         {

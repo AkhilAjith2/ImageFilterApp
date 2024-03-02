@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Windows;
+using System.Windows.Media;
 
 namespace CG_TASK_1
 {
@@ -164,7 +165,7 @@ namespace CG_TASK_1
                 { -1, -1, -1 }
             };
 
-            return ApplyConvolution(image, kernel);
+            return ApplyConvolution(image, kernel );
         }
 
         public static Bitmap ApplyEmboss(Bitmap image)
@@ -273,6 +274,73 @@ namespace CG_TASK_1
             return resultBitmap;
         }
 
+        public static Bitmap ApplyConvolution(Bitmap image, int[,] kernel, System.Drawing.Point anchor, int divisor, int offset)
+        {
+            BitmapSource bitmapSource = ConvertBitmapToBitmapSource(image);
+            BitmapSource filteredBitmapSource = ApplyConvolution(bitmapSource, kernel, anchor, divisor, offset);
+            MainWindow.filteredImage = ConvertBitmapSourceToBitmap(filteredBitmapSource);
+            return MainWindow.filteredImage;
+        }
+
+        public static BitmapSource ApplyConvolution(BitmapSource original, int[,] kernel, System.Drawing.Point anchor, int divisor, int offset)
+        {
+            int width = original.PixelWidth;
+            int height = original.PixelHeight;
+
+            WriteableBitmap resultBitmap = new WriteableBitmap(original);
+            Int32Rect rect = new Int32Rect(0, 0, width, height);
+            byte[] pixels = new byte[width * height * 4];
+
+            original.CopyPixels(rect, pixels, width * 4, 0);
+
+            resultBitmap.Lock();
+
+            int kernelSizeX = kernel.GetLength(1);
+            int kernelSizeY = kernel.GetLength(0);
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int[] colorSum = { 0, 0, 0 };
+
+                    for (int ky = 0; ky < kernelSizeY; ky++)
+                    {
+                        for (int kx = 0; kx < kernelSizeX; kx++)
+                        {
+                            int offsetX = Math.Max(0, Math.Min(width - 1, x + kx - anchor.X));
+                            int offsetY = Math.Max(0, Math.Min(height - 1, y + ky - anchor.Y));
+
+                            int index = (offsetY * width + offsetX) * 4;
+                            colorSum[0] += pixels[index] * kernel[ky, kx];
+                            colorSum[1] += pixels[index + 1] * kernel[ky, kx];
+                            colorSum[2] += pixels[index + 2] * kernel[ky, kx];
+                        }
+                    }
+
+                    // Apply divisor and offset
+                    if (divisor != 0)
+                    {
+                        colorSum[0] = (colorSum[0] / divisor) + offset;
+                        colorSum[1] = (colorSum[1] / divisor) + offset;
+                        colorSum[2] = (colorSum[2] / divisor) + offset;
+                    }
+
+                    byte red = (byte)Math.Min(255, Math.Max(0, colorSum[0]));
+                    byte green = (byte)Math.Min(255, Math.Max(0, colorSum[1]));
+                    byte blue = (byte)Math.Min(255, Math.Max(0, colorSum[2]));
+
+                    int resultIndex = (y * width + x) * 4;
+                    resultBitmap.WritePixels(new Int32Rect(x, y, 1, 1), new byte[] { red, green, blue, 255 }, 4, 0);
+                }
+            }
+
+            resultBitmap.Unlock();
+
+            return resultBitmap;
+        }
+
+
         public static BitmapImage ConvertBitmapToBitmapImage(Bitmap bitmap)
         {
             using (MemoryStream memory = new MemoryStream())
@@ -288,7 +356,7 @@ namespace CG_TASK_1
             }
         }
 
-        private static BitmapSource ConvertBitmapToBitmapSource(Bitmap bitmap)
+        public static BitmapSource ConvertBitmapToBitmapSource(Bitmap bitmap)
         {
             using (MemoryStream memory = new MemoryStream())
             {
@@ -300,12 +368,11 @@ namespace CG_TASK_1
                 bitmapImage.StreamSource = memory;
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapImage.EndInit();
-
                 return bitmapImage;
             }
         }
 
-        private static Bitmap ConvertBitmapSourceToBitmap(BitmapSource bitmapSource)
+        public static Bitmap ConvertBitmapSourceToBitmap(BitmapSource bitmapSource)
         {
             Bitmap bitmap;
             using (MemoryStream outStream = new MemoryStream())

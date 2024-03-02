@@ -51,6 +51,20 @@
                 </Button.Style>
             </Button>
 
+            <!-- Kernel Button -->
+            <Button Content="Kernel Editor" Click="OpenKernelEditingWindow_Click" Margin="5">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="Red"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </Button.Style>
+            </Button>
+
             <!-- Save Image Button -->
             <Button Content="Save Image" Click="SaveImage_Click" Margin="5">
                 <Button.Style>

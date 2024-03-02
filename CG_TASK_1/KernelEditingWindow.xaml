@@ -1,0 +1,67 @@
+﻿<Window x:Class="CG_TASK_1.KernelEditingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CG_TASK_1"
+        mc:Ignorable="d"
+        Title="Convolution Filter Editor" Height="450" Width="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Kernel Size Inputs -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical" Margin="10">
+            <Grid Margin="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Kernel Size (X):"/>
+                <TextBox x:Name="KernelSizeXTextBox" Text="3" Grid.Column="1" Margin="0 4 0 0"/>
+            </Grid>
+
+            <Grid Margin="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Kernel Size (Y):"/>
+                <TextBox x:Name="KernelSizeYTextBox" Text="3" Grid.Column="1" Margin="0 4 0 0"/>
+            </Grid>
+
+            <Button Content="Set Kernel Size" Click="SetKernelSizeButton_Click" Margin="10 10"/>
+        </StackPanel>
+
+        <!-- Kernel Grid -->
+        <Grid x:Name="KernelGrid" Grid.Row="1" Grid.Column="0" Margin="10" Visibility="Hidden"/>
+
+        <!-- Anchor Point Inputs -->
+        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10 0 10 0">
+            <Label Content="Anchor Point: "/>
+            <TextBox x:Name="FilterAnchorPointTextBox" Text="0,0"/>
+            <Button Content="Set Anchor Point" Click="SetAnchorPointButton_Click" Margin="0 10 0 0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,10,0">
+            <Label Content="Divisor:"/>
+            <TextBox x:Name="DivisorTextBox"/>
+            <Button Content="Auto Compute" Click="AutoComputeDivisor_Click" Margin="0 10 0 10"/>
+            <Label Content="Offset:"/>
+            <TextBox x:Name="OffsetTextBox"/>
+        </StackPanel>
+
+        <!-- Load and Save Buttons -->
+        <Button x:Name="ApplyFilterButton" Content="Apply Filter" Grid.Row="2" Grid.Column="0" Margin="10" Click="ApplyFilterButton_Click"/>
+        <Button x:Name="SaveFilterButton" Content="Save Filter" Grid.Row="2" Grid.Column="1" Margin="10" Click="SaveFilterButton_Click"/>
+
+    </Grid>
+</Window>

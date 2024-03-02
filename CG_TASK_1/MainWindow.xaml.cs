@@ -29,11 +29,12 @@ namespace CG_TASK_1
         public static Bitmap originalImage;
         public static Bitmap filteredImage;
         private Stack<Bitmap> filterStack = new Stack<Bitmap>();
+        private KernelEditingWindow kernelEditingWindow;
 
         public MainWindow()
         {
             InitializeComponent();
-            WindowState = WindowState.Maximized;
+            WindowState = WindowState.Maximized;            
         }
 
         private void LoadImage_Click(object sender, RoutedEventArgs e)
@@ -130,6 +131,28 @@ namespace CG_TASK_1
             filteredImage = originalImage;
             filterStack.Clear();
         }
+        private void OpenKernelEditingWindow_Click(object sender, RoutedEventArgs e)
+        {
+            KernelEditingWindow editingWindow = new KernelEditingWindow();
+            editingWindow.Owner = this;
+            editingWindow.FilterLoaded += KernelEditingWindow_FilterApplied;
+            editingWindow.Show();
+        }
 
+        private void KernelEditingWindow_FilterApplied(object sender, ConvAppliedEventArgs e)
+        {
+            if (originalBitmap != null)
+            {
+                Bitmap filteredImageCopy = Filters.ApplyConvolution(filteredImage, e.Kernel, e.Anchor, e.Divisor, e.Offset);
+                filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
+                FilteredImage.Source = filteredBitmap;
+                filterStack.Push(filteredImageCopy);
+                filteredImage = new Bitmap(filteredImageCopy);
+            }
+            else
+            {
+                MessageBox.Show("Please load an image first.");
+            }
+        }
     }
 }
