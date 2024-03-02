@@ -55,7 +55,7 @@
             <Button Content="Save Image" Click="SaveImage_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">
-                        <Setter Property="Background" Value="#FF2196F3"/>
+                        <Setter Property="Background" Value="LawnGreen"/>
                         <Setter Property="Foreground" Value="White"/>
                         <Setter Property="Padding" Value="10"/>
                         <Setter Property="BorderThickness" Value="0"/>
@@ -69,7 +69,7 @@
             <Button Content="Undo" Click="Undo_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">
-                        <Setter Property="Background" Value="#FFE91E63"/>
+                        <Setter Property="Background" Value="DarkOrange"/>
                         <Setter Property="Foreground" Value="White"/>
                         <Setter Property="Padding" Value="10"/>
                         <Setter Property="BorderThickness" Value="0"/>
@@ -78,6 +78,21 @@
                     </Style>
                 </Button.Style>
             </Button>
+
+            <!-- Reset Button -->
+            <Button Content="Reset" Click="Reset_Click" Margin="5">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="Red"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </Button.Style>
+            </Button>
+
         </StackPanel>
     </Grid>
 </Window>

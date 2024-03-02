@@ -1,164 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Windows.Media.Media3D;
+using System.Windows;
 
 namespace CG_TASK_1
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    internal class Filters
     {
-        private BitmapImage originalBitmap;
-        private BitmapImage filteredBitmap;
-        private Bitmap originalImage;
-        private Bitmap filteredImage;
-
-        public MainWindow()
-        {
-            InitializeComponent();
-            WindowState = WindowState.Maximized;
-        }
-
-        private void LoadImage_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog();
-            openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp;*.avif";
-            if (openFileDialog.ShowDialog() == true)
-            {
-                originalImage = new Bitmap(openFileDialog.FileName);
-                filteredImage = originalImage;
-                originalBitmap = ConvertBitmapToBitmapImage(originalImage);
-                OriginalImage.Source = originalBitmap;
-                FilteredImage.Source = originalBitmap;
-            }
-        }
-        private void SaveImage_Click(object sender, RoutedEventArgs e)
-        {
-            if (FilteredImage.Source != null)
-            {
-                var saveFileDialog = new Microsoft.Win32.SaveFileDialog();
-                saveFileDialog.Filter = "PNG Image|*.png";
-                if (saveFileDialog.ShowDialog() == true)
-                {
-                    using (var fileStream = new FileStream(saveFileDialog.FileName, FileMode.Create))
-                    {
-                        BitmapEncoder encoder = new PngBitmapEncoder();
-                        encoder.Frames.Add(BitmapFrame.Create((BitmapSource)FilteredImage.Source));
-                        encoder.Save(fileStream);
-                    }
-                    MessageBox.Show("Image saved successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
-            else
-            {
-                MessageBox.Show("Please apply a filter to the image first.");
-            }
-        }
-
-        private Stack<Bitmap> filterStack = new Stack<Bitmap>();
-
-        private void OpenFilterWindow_Click(object sender, RoutedEventArgs e)
-        {
-            FilterWindow filterWindow = new FilterWindow();
-            filterWindow.Owner = this;
-            filterWindow.FilterApplied += FilterWindow_FilterApplied;
-            filterWindow.Show();
-        }
-
-        private void FilterWindow_FilterApplied(object sender, FilterAppliedEventArgs e)
-        {
-            if (originalBitmap != null)
-            {
-                Bitmap filteredImageCopy = ApplyFilter(filteredImage, e.SelectedFilterIndex);
-                filteredBitmap = ConvertBitmapToBitmapImage(filteredImageCopy);
-                FilteredImage.Source = filteredBitmap;
-                filterStack.Push(filteredImageCopy);
-                filteredImage = new Bitmap(filteredImageCopy);
-            }
-            else
-            {
-                MessageBox.Show("Please load an image first.");
-            }
-        }
-
-        private void Undo_Click(object sender, RoutedEventArgs e)
-        {
-            if (filterStack.Count > 0)
-            {
-                filterStack.Pop();
-
-                if (filterStack.Count > 0)
-                {
-                    BitmapImage previousBitmap = ConvertBitmapToBitmapImage(filterStack.Peek());
-                    FilteredImage.Source = previousBitmap;
-                    filteredImage = new Bitmap(filterStack.Peek());
-                }
-                else
-                {
-                    FilteredImage.Source = originalBitmap;
-                    filteredBitmap = originalBitmap;
-                    filteredImage = originalImage;
-                }
-            }
-            else
-            {
-                MessageBox.Show("No changes to undo.");
-            }
-        }
-
-        private void Reset_Click(object sender, RoutedEventArgs e)
-        {
-            FilteredImage.Source = originalBitmap;
-            filteredBitmap = originalBitmap;
-            filteredImage = originalImage;
-            filterStack.Clear();
-        }
-
-        private Bitmap ApplyFilter(Bitmap image, int filterIndex)
-        {
-            switch (filterIndex)
-            {
-                case 0:
-                    return image;
-                case 1: 
-                    return ApplyInversion(image);
-                case 2: 
-                    return ApplyBrightnessCorrection(image);
-                case 3: 
-                    return ApplyContrastEnhancement(image);
-                case 4: 
-                    return ApplyGammaCorrection(image);
-                case 5: 
-                    return ApplyBlur(image);
-                case 6: 
-                    return ApplyGaussianBlur(image);
-                case 7: 
-                    return ApplySharpen(image);
-                case 8:
-                    return ApplyEdgeDetection(image);
-                case 9:
-                    return ApplyEmboss(image);
-                default:
-                    return image;
-            }
-        }
-
         private int Clamp(int value)
         {
             return Math.Max(0, Math.Min(255, value));

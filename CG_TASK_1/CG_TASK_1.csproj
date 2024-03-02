@@ -71,6 +71,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Filters.cs" />
     <Compile Include="FilterWindow.xaml.cs">
       <DependentUpon>FilterWindow.xaml</DependentUpon>
     </Compile>
