@@ -318,7 +318,6 @@ namespace CG_TASK_1
                         }
                     }
 
-                    // Apply divisor and offset
                     if (divisor != 0)
                     {
                         colorSum[0] = (colorSum[0] / divisor) + offset;

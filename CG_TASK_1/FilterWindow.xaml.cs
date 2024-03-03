@@ -1,6 +1,7 @@
 ﻿using CG_TASK_1;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,11 +22,31 @@ namespace CG_TASK_1
     public partial class FilterWindow : Window
     {
         public event EventHandler<FilterAppliedEventArgs> FilterApplied;
+        public ObservableCollection<string> FilterNames { get; } = new ObservableCollection<string>();
         public FilterWindow()
         {
             InitializeComponent();
+            this.DataContext = this;
             this.Topmost = true;
+            LoadFilters();
         }
+
+        private void LoadFilters()
+        {
+            // Add predefined filter names
+            string[] predefinedFilters = { "Select Filter", "Inversion", "Brightness Correction", "Contrast Enhancement", "Gamma Correction", "Blur", "Gaussian Blur", "Sharpen", "Edge Detection", "Emboss" };
+            foreach (string filter in predefinedFilters)
+            {
+                FilterNames.Add(filter);
+            }
+
+            // Add user-defined filter names
+            foreach (Filter filter in KernelEditingWindow.savedFilters)
+            {
+                FilterNames.Add(filter.Name);
+            }
+        }
+
 
         private void ApplyFilter_Click(object sender, RoutedEventArgs e)
         {

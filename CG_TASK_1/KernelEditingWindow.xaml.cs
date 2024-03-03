@@ -12,14 +12,51 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CG_TASK_1
 {
     /// <summary>
     /// Interaction logic for KernelEditingWindow.xaml
     /// </summary>
+    /// 
+    public class ConvAppliedEventArgs : EventArgs
+    {
+        public int[,] Kernel { get; }
+        public System.Drawing.Point Anchor { get; }
+        public int Divisor { get; }
+        public int Offset { get; }
+        public ConvAppliedEventArgs(int[,] kernel, System.Drawing.Point anchor, int divisor, int offset)
+        {
+            Anchor = anchor;
+            Kernel = kernel;
+            Divisor = divisor;
+            Offset = offset;
+        }
+    }
+
+    public class Filter
+    {
+        public string Name { get; set; }
+        public int[,] Kernel { get; set; }
+        public System.Drawing.Point Anchor { get; set; }
+        public int Divisor { get; set; }
+        public int Offset { get; set; }
+
+        public Filter(string name, int[,] kernel, System.Drawing.Point anchor, int divisor, int offset)
+        {
+            Name = name;
+            Kernel = kernel;
+            Anchor = anchor;
+            Divisor = divisor;
+            Offset = offset;
+        }
+    }
+
+
     public partial class KernelEditingWindow : Window
     {
+        public static List<Filter> savedFilters = new List<Filter>() ;
         private int[,] kernelValues;
         private int kernelSizeX;
         private int kernelSizeY;
@@ -149,9 +186,22 @@ namespace CG_TASK_1
         {
             if (kernelValues != null)
             {
-                int divisor = int.Parse(DivisorTextBox.Text);
-                int offset = int.Parse(OffsetTextBox.Text);
-                FilterLoaded?.Invoke(this, new ConvAppliedEventArgs(kernelValues, anchorPoint, divisor, offset));
+                if (!string.IsNullOrWhiteSpace(DivisorTextBox.Text) && !string.IsNullOrWhiteSpace(OffsetTextBox.Text))
+                {
+                    int divisor, offset;
+                    if (int.TryParse(DivisorTextBox.Text, out divisor) && int.TryParse(OffsetTextBox.Text, out offset))
+                    {
+                        FilterLoaded?.Invoke(this, new ConvAppliedEventArgs(kernelValues, anchorPoint, divisor, offset));
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please enter valid integer values for divisor and offset.");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Please enter valid integer values for divisor and offset.");
+                }
             }
             else
             {
@@ -159,40 +209,32 @@ namespace CG_TASK_1
             }
         }
 
+
         private void SaveFilterButton_Click(object sender, RoutedEventArgs e)
         {
-            // Save filter logic
-            // Example: Save kernel values to a file
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < kernelValues.GetLength(0); i++)
+            string filterName = SaveFilterName.Text.Trim();
+
+            if (!string.IsNullOrWhiteSpace(filterName) && !string.IsNullOrWhiteSpace(DivisorTextBox.Text) && !string.IsNullOrWhiteSpace(OffsetTextBox.Text))
             {
-                for (int j = 0; j < kernelValues.GetLength(1); j++)
+                int divisor, offset;
+                if (int.TryParse(DivisorTextBox.Text, out divisor) && int.TryParse(OffsetTextBox.Text, out offset))
                 {
-                    sb.Append(kernelValues[i, j]);
-                    sb.Append(" ");
+                    Filter filter = new Filter(filterName, kernelValues, anchorPoint, divisor, offset);
+
+                    savedFilters.Add(filter);
+
+                    MessageBox.Show("Filter saved successfully");
                 }
-                sb.AppendLine();
+                else
+                {
+                    MessageBox.Show("Please enter valid integer values for divisor and offset.");
+                }
             }
-
-            // Example: Save to a file named "filter.txt" in the application directory
-            string filePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "filter.txt");
-            System.IO.File.WriteAllText(filePath, sb.ToString());
-
-            MessageBox.Show("Filter saved to filter.txt");
+            else
+            {
+                MessageBox.Show("Please enter a name, divisor, and offset for the filter.");
+            }
         }
     }
-    public class ConvAppliedEventArgs : EventArgs
-    {
-        public int[,] Kernel { get; }
-        public System.Drawing.Point Anchor { get; }
-        public int Divisor { get; }
-        public int Offset { get; }
-        public ConvAppliedEventArgs(int[,] kernel, System.Drawing.Point anchor, int divisor, int offset)
-        { 
-            Anchor = anchor;
-            Kernel = kernel;
-            Divisor = divisor;
-            Offset = offset;
-        }
-    }
+
 }
