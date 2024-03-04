@@ -18,7 +18,6 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Kernel Size Inputs -->
         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical" Margin="10">
             <Label Content="Select convolution filter to edit"/>
             <ComboBox x:Name="FilterComboBoxKernelEditingWindow" Grid.Row="0" Grid.Column="0" SelectedIndex="-1" 
@@ -51,10 +50,8 @@
             <Button Content="Set Kernel Size" Click="SetKernelSizeButton_Click" Margin="10 10"/>
         </StackPanel>
 
-        <!-- Kernel Grid -->
         <Grid x:Name="KernelGrid" Grid.Row="1" Grid.Column="0" Margin="10" Visibility="Hidden"/>
 
-        <!-- Anchor Point Inputs -->
         <StackPanel Grid.Row="0" Grid.Column="1" Margin="10 0 10 0">
             <Label Content="Anchor Point: "/>
             <TextBox x:Name="FilterAnchorPointTextBox"/>
@@ -71,7 +68,6 @@
             <TextBox x:Name="SaveFilterName"/>
         </StackPanel>
 
-        <!-- Load and Save Buttons -->
         <Button x:Name="ApplyFilterButton" Content="Apply Filter" Grid.Row="2" Grid.Column="0" Margin="10" Click="ApplyFilterButton_Click"/>
         <Button x:Name="SaveFilterButton" Content="Save Filter" Grid.Row="2" Grid.Column="2" Margin="10" Click="SaveFilterButton_Click"/>
         

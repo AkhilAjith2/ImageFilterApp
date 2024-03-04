@@ -287,12 +287,11 @@ namespace CG_TASK_1
             int height = original.PixelHeight;
 
             WriteableBitmap resultBitmap = new WriteableBitmap(original);
-            Int32Rect rect = new Int32Rect(0, 0, width, height);
+            Int32Rect rectangle = new Int32Rect(0, 0, width, height);
             byte[] pixels = new byte[width * height * 4];
+            byte[] resultPixels = new byte[width * height * 4];
 
-            original.CopyPixels(rect, pixels, width * 4, 0);
-
-            resultBitmap.Lock();
+            original.CopyPixels(rectangle, pixels, width * 4, 0);
 
             int kernelSizeX = kernel.GetLength(1);
             int kernelSizeY = kernel.GetLength(0);
@@ -329,15 +328,17 @@ namespace CG_TASK_1
                     byte blue = (byte)Math.Min(255, Math.Max(0, colorSum[2]));
 
                     int resultIndex = (y * width + x) * 4;
-                    resultBitmap.WritePixels(new Int32Rect(x, y, 1, 1), new byte[] { red, green, blue, 255 }, 4, 0);
+                    resultPixels[resultIndex] = red;
+                    resultPixels[resultIndex + 1] = green;
+                    resultPixels[resultIndex + 2] = blue;
+                    resultPixels[resultIndex + 3] = 255; 
                 }
             }
 
-            resultBitmap.Unlock();
+            resultBitmap.WritePixels(rectangle, resultPixels, width * 4, 0); 
 
             return resultBitmap;
         }
-
 
         public static BitmapImage ConvertBitmapToBitmapImage(Bitmap bitmap)
         {
@@ -380,6 +381,39 @@ namespace CG_TASK_1
                 bitmap = new Bitmap(outStream);
             }
             return new Bitmap(bitmap);
+        }
+
+        public static Bitmap ApplyMedianFilter(Bitmap image)
+        {
+            Bitmap filteredImage = new Bitmap(image.Width, image.Height);
+
+            for (int y = 1; y < image.Height - 1; y++)
+            {
+                for (int x = 1; x < image.Width - 1; x++)
+                {
+                    System.Drawing.Color[] neighborhood = new System.Drawing.Color[9];
+                    int index = 0;
+                    for (int j = y - 1; j <= y + 1; j++)
+                    {
+                        for (int i = x - 1; i <= x + 1; i++)
+                        {
+                            neighborhood[index++] = image.GetPixel(i, j);
+                        }
+                    }
+
+                    Array.Sort(neighborhood, (c1, c2) => GetIntensity(c1).CompareTo(GetIntensity(c2)));
+
+                    System.Drawing.Color medianColor = neighborhood[4];
+
+                    filteredImage.SetPixel(x, y, medianColor);
+                }
+            }
+            return filteredImage;
+        }
+
+        private static int GetIntensity(System.Drawing.Color color)
+        {
+            return (color.R + color.G + color.B) / 3;
         }
     }
 }

@@ -16,19 +16,15 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Left section for original image -->
         <Image x:Name="OriginalImage" Stretch="Uniform" Grid.Row="0" Grid.Column="0" Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-        <!-- Right section for filtered image -->
         <Image x:Name="FilteredImage" Stretch="Uniform" Grid.Row="0" Grid.Column="1" Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-        <!-- Bottom section for options -->
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-            <!-- Load Image Button -->
             <Button Content="Load Image" Click="LoadImage_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">
-                        <Setter Property="Background" Value="#FF2196F3"/>
+                        <Setter Property="Background" Value="Purple"/>
                         <Setter Property="Foreground" Value="White"/>
                         <Setter Property="Padding" Value="10"/>
                         <Setter Property="BorderThickness" Value="0"/>
@@ -41,6 +37,19 @@
             <Button Content="Filters" Click="OpenFilterWindow_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">
+                        <Setter Property="Background" Value="#FF2196F3"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <Button Content="Kernel Editor" Click="OpenKernelEditingWindow_Click" Margin="5">
+                <Button.Style>
+                    <Style TargetType="Button">
                         <Setter Property="Background" Value="Turquoise"/>
                         <Setter Property="Foreground" Value="White"/>
                         <Setter Property="Padding" Value="10"/>
@@ -51,21 +60,6 @@
                 </Button.Style>
             </Button>
 
-            <!-- Kernel Button -->
-            <Button Content="Kernel Editor" Click="OpenKernelEditingWindow_Click" Margin="5">
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="Background" Value="Red"/>
-                        <Setter Property="Foreground" Value="White"/>
-                        <Setter Property="Padding" Value="10"/>
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="FontFamily" Value="Segoe UI"/>
-                        <Setter Property="FontSize" Value="12"/>
-                    </Style>
-                </Button.Style>
-            </Button>
-
-            <!-- Save Image Button -->
             <Button Content="Save Image" Click="SaveImage_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">
@@ -79,7 +73,6 @@
                 </Button.Style>
             </Button>
 
-            <!-- Undo Button -->
             <Button Content="Undo" Click="Undo_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">
@@ -93,11 +86,23 @@
                 </Button.Style>
             </Button>
 
-            <!-- Reset Button -->
             <Button Content="Reset" Click="Reset_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Background" Value="Red"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <Button Content="Apply Median Filter" Click="ApplyMedianFilter_Click" Margin="5">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="Gray"/>
                         <Setter Property="Foreground" Value="White"/>
                         <Setter Property="Padding" Value="10"/>
                         <Setter Property="BorderThickness" Value="0"/>

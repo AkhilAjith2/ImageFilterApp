@@ -154,5 +154,14 @@ namespace CG_TASK_1
                 MessageBox.Show("Please load an image first.");
             }
         }
+
+        private void ApplyMedianFilter_Click(object sender, RoutedEventArgs e)
+        {
+            Bitmap filteredImageCopy = Filters.ApplyMedianFilter(filteredImage);
+            filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
+            FilteredImage.Source = filteredBitmap;
+            filterStack.Push(filteredImageCopy);
+            filteredImage = new Bitmap(filteredImageCopy);
+        }
     }
 }
