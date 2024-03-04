@@ -12,6 +12,41 @@ using System.Windows.Media;
 
 namespace CG_TASK_1
 {
+    public class Filter
+    {
+        public string Name { get; set; }
+        public int[,] Kernel { get; set; }
+        public System.Drawing.Point Anchor { get; set; }
+        public int Divisor { get; set; }
+        public int Offset { get; set; }
+        public Filter(string name, int[,] kernel, System.Drawing.Point anchor, int divisor, int offset)
+        {
+            Name = name;
+            Kernel = kernel;
+            Anchor = anchor;
+            Divisor = divisor;
+            Offset = offset;
+        }
+
+        public Bitmap ApplyFilter(Bitmap image)
+        {
+            return Filters.ApplyConvolution(image, Kernel, Anchor, Divisor, Offset);
+        }
+    }
+
+    public static class FilterManager
+    {
+        public static List<Filter> ConvolutionFilters { get; } = new List<Filter>();
+        public static void AddPredefinedFilters()
+        {
+            ConvolutionFilters.Add(new Filter("Blur", new int[,] { { 1, 1, 1 }, { 1, 1, 1 }, { 1, 1, 1 } }, new System.Drawing.Point(1, 1), 9, 0));
+            ConvolutionFilters.Add(new Filter("Gaussian Blur", new int[,] { { 0, 1, 0 }, { 1, 4, 1 }, { 0, 1, 0 } }, new System.Drawing.Point(1, 1), 8, 0));
+            ConvolutionFilters.Add(new Filter("Sharpen", new int[,] { { 0, -1, 0 }, { -1, 5, -1 }, { 0, -1, 0 } }, new System.Drawing.Point(1, 1), 1, 0));
+            ConvolutionFilters.Add(new Filter("Edge Detection", new int[,] { { -1, -1, -1 }, { -1, 8, -1 }, { -1, -1, -1 } }, new System.Drawing.Point(1, 1), 0, 0));
+            ConvolutionFilters.Add(new Filter("Emboss", new int[,] { { -2, -1, 0 }, { -1, 1, 1 }, { 0, 1, 2 } }, new System.Drawing.Point(1, 1), 1, 0));
+        }
+    }
+
     internal class Filters
     {
         public static int Clamp(int value)
@@ -126,152 +161,116 @@ namespace CG_TASK_1
 
         public static Bitmap ApplyBlur(Bitmap image)
         {
-            int[,] kernel = {
+            Filter blurFilter = new Filter("Blur", new int[,] {
                 { 1, 1, 1 },
                 { 1, 1, 1 },
                 { 1, 1, 1 }
-            };
-
-            return ApplyConvolution(image, kernel);
+            }, new System.Drawing.Point(1, 1), 9, 0);
+            FilterManager.ConvolutionFilters.Add(FilterWindow.blurFilter);
+            return blurFilter.ApplyFilter(image);
         }
 
         public static Bitmap ApplyGaussianBlur(Bitmap image)
         {
-            int[,] kernel = {
+            Filter gaussianBlurFilter = new Filter("Gaussian Blur", new int[,] {
                 { 0, 1, 0 },
                 { 1, 4, 1 },
                 { 0, 1, 0 }
-            };
-
-            return ApplyConvolution(image, kernel);
+            }, new System.Drawing.Point(1, 1), 8, 0);
+            FilterManager.ConvolutionFilters.Add(FilterWindow.gaussianBlurFilter);
+            return gaussianBlurFilter.ApplyFilter(image);
         }
 
         public static Bitmap ApplySharpen(Bitmap image)
         {
-            int[,] kernel = {
+            Filter sharpenFilter = new Filter("Sharpen", new int[,] {
                 { 0, -1, 0 },
                 { -1, 5, -1 },
                 { 0, -1, 0 }
-            };
-
-            return ApplyConvolution(image, kernel);
+            }, new System.Drawing.Point(1, 1), 1, 0);
+            FilterManager.ConvolutionFilters.Add(FilterWindow.sharpenFilter);
+            return sharpenFilter.ApplyFilter(image);
         }
 
         public static Bitmap ApplyEdgeDetection(Bitmap image)
         {
-            int[,] kernel = {
+            Filter edgeDetectionFilter = new Filter("Edge Detection", new int[,] {
                 { -1, -1, -1 },
                 { -1, 8, -1 },
                 { -1, -1, -1 }
-            };
-
-            return ApplyConvolution(image, kernel );
+            }, new System.Drawing.Point(1, 1), 0, 0);
+            FilterManager.ConvolutionFilters.Add(FilterWindow.edgeDetectionFilter);
+            return edgeDetectionFilter.ApplyFilter(image);
         }
 
         public static Bitmap ApplyEmboss(Bitmap image)
         {
-            int[,] kernel = {
+            Filter embossFilter = new Filter("Emboss", new int[,] {
                 { -2, -1, 0 },
                 { -1, 1, 1 },
                 { 0, 1, 2 }
-            };
-
-            return ApplyConvolution(image, kernel);
+            }, new System.Drawing.Point(1, 1), 1, 0);
+            FilterManager.ConvolutionFilters.Add(FilterWindow.embossFilter);
+            return embossFilter.ApplyFilter(image);
         }
 
         public static Bitmap ApplyFilter(Bitmap image, int filterIndex)
         {
-            switch (filterIndex)
+            Filter filter = GetFilter(filterIndex);
+
+            if (filterIndex <= 4)
             {
-                case 0:
-                    return image;
-                case 1:
-                    return ApplyInversion(image);
-                case 2:
-                    return ApplyBrightnessCorrection(image);
-                case 3:    
-                    return ApplyContrastEnhancement(image);
-                case 4:    
-                    return ApplyGammaCorrection(image);
-                case 5:    
-                    return ApplyBlur(image);
-                case 6:    
-                    return ApplyGaussianBlur(image);
-                case 7:    
-                    return ApplySharpen(image);
-                case 8:    
-                    return ApplyEdgeDetection(image);
-                case 9:    
-                    return ApplyEmboss(image);
-                default:   
-                    return image;
-            }
-        }
-
-        public static Bitmap ApplyConvolution(Bitmap image, int[,] kernel)
-        {
-            BitmapSource bitmapSource = ConvertBitmapToBitmapSource(image);
-            BitmapSource filteredBitmapSource = ApplyConvolution(bitmapSource, kernel);
-            MainWindow.filteredImage = ConvertBitmapSourceToBitmap(filteredBitmapSource);
-            return MainWindow.filteredImage;
-        }
-
-        public static BitmapSource ApplyConvolution(BitmapSource original, int[,] kernel)
-        {
-            int width = original.PixelWidth;
-            int height = original.PixelHeight;
-            int totalWeight = 0;
-
-            WriteableBitmap resultBitmap = new WriteableBitmap(original);
-            Int32Rect rect = new Int32Rect(0, 0, width, height);
-            byte[] pixels = new byte[width * height * 4];
-
-            original.CopyPixels(rect, pixels, width * 4, 0);
-
-            resultBitmap.Lock();
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
+                switch (filterIndex)
                 {
-                    int[] colorSum = { 0, 0, 0 };
-
-                    for (int ky = -1; ky <= 1; ky++)
-                    {
-                        for (int kx = -1; kx <= 1; kx++)
-                        {
-                            int offsetX = Math.Max(0, Math.Min(width - 1, x + kx));
-                            int offsetY = Math.Max(0, Math.Min(height - 1, y + ky));
-
-                            int index = (offsetY * width + offsetX) * 4;
-                            colorSum[0] += pixels[index] * kernel[ky + 1, kx + 1];
-                            colorSum[1] += pixels[index + 1] * kernel[ky + 1, kx + 1];
-                            colorSum[2] += pixels[index + 2] * kernel[ky + 1, kx + 1];
-                            totalWeight += kernel[ky + 1, kx + 1];
-                        }
-                    }
-
-                    if (totalWeight > 0)
-                    {
-                        colorSum[0] /= totalWeight;
-                        colorSum[1] /= totalWeight;
-                        colorSum[2] /= totalWeight;
-                    }
-
-                    byte red = (byte)Math.Min(255, Math.Max(0, colorSum[0]));
-                    byte green = (byte)Math.Min(255, Math.Max(0, colorSum[1]));
-                    byte blue = (byte)Math.Min(255, Math.Max(0, colorSum[2]));
-
-                    int resultIndex = (y * width + x) * 4;
-                    resultBitmap.WritePixels(new Int32Rect(x, y, 1, 1), new byte[] { red, green, blue, 255 }, 4, 0);
-
-                    totalWeight = 0;
+                    case 1:
+                        return ApplyInversion(image);
+                    case 2:
+                        return ApplyBrightnessCorrection(image);
+                    case 3:
+                        return ApplyContrastEnhancement(image);
+                    case 4:
+                        return ApplyGammaCorrection(image);
+                    default:
+                        return image;
                 }
             }
+            else
+            {
+                if (filter == null)
+                {
+                    switch (filterIndex)
+                    {
+                        case 5:
+                            return ApplyBlur(image);
+                        case 6:
+                            return ApplyGaussianBlur(image);
+                        case 7:
+                            return ApplySharpen(image);
+                        case 8:
+                            return ApplyEdgeDetection(image);
+                        case 9:
+                            return ApplyEmboss(image);
+                        default:
+                            return image;
+                    }
+                }
+                else
+                {
+                    return ApplyConvolution(image, filter.Kernel, filter.Anchor, filter.Divisor, filter.Offset);
+                }
+            }
+        }
 
-            resultBitmap.Unlock();
-
-            return resultBitmap;
+        private static Filter GetFilter(int filterIndex)
+        {
+            if (filterIndex >= FilterWindow.predefinedFilters.Count && filterIndex < FilterWindow.predefinedFilters.Count + KernelEditingWindow.savedFilters.Count)
+            {
+                return KernelEditingWindow.savedFilters[filterIndex - FilterWindow.predefinedFilters.Count];
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static Bitmap ApplyConvolution(Bitmap image, int[,] kernel, System.Drawing.Point anchor, int divisor, int offset)
@@ -361,7 +360,6 @@ namespace CG_TASK_1
             {
                 bitmap.Save(memory, ImageFormat.Bmp);
                 memory.Position = 0;
-
                 BitmapImage bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
                 bitmapImage.StreamSource = memory;

@@ -35,43 +35,30 @@ namespace CG_TASK_1
         }
     }
 
-    public class Filter
-    {
-        public string Name { get; set; }
-        public int[,] Kernel { get; set; }
-        public System.Drawing.Point Anchor { get; set; }
-        public int Divisor { get; set; }
-        public int Offset { get; set; }
-
-        public Filter(string name, int[,] kernel, System.Drawing.Point anchor, int divisor, int offset)
-        {
-            Name = name;
-            Kernel = kernel;
-            Anchor = anchor;
-            Divisor = divisor;
-            Offset = offset;
-        }
-    }
-
-
     public partial class KernelEditingWindow : Window
     {
-        public static List<Filter> savedFilters = new List<Filter>() ;
+        public static List<Filter> savedFilters = new List<Filter>();
         private int[,] kernelValues;
         private int kernelSizeX;
         private int kernelSizeY;
         public event EventHandler<ConvAppliedEventArgs> FilterLoaded;
+        private System.Drawing.Point anchorPoint = new System.Drawing.Point(1, 1);
 
         public KernelEditingWindow()
         {
             InitializeComponent();
+            this.Topmost = true;
+            FilterComboBoxKernelEditingWindow.DataContext = FilterWindow.Instance;
+            FilterComboBoxKernelEditingWindow.SelectedItem = "";
         }
 
         private void SetKernelSizeButton_Click(object sender, RoutedEventArgs e)
         {
+            FilterComboBoxKernelEditingWindow.SelectedItem = null;
+            SaveFilterName.Text = "";
             if (int.TryParse(KernelSizeXTextBox.Text, out kernelSizeX) && int.TryParse(KernelSizeYTextBox.Text, out kernelSizeY))
             {
-                if(kernelSizeX<=9 && kernelSizeX >= 0 && kernelSizeY <=9 && kernelSizeY >= 0)
+                if (kernelSizeX <= 9 && kernelSizeX >= 0 && kernelSizeY <= 9 && kernelSizeY >= 0)
                 {
                     GenerateKernelGrid();
                 }
@@ -79,7 +66,7 @@ namespace CG_TASK_1
                 {
                     MessageBox.Show("Invalid kernel size. Please enter valid integer values.");
                 }
-                
+
             }
             else
             {
@@ -89,37 +76,68 @@ namespace CG_TASK_1
 
         private void GenerateKernelGrid()
         {
-            kernelValues = new int[kernelSizeY, kernelSizeX];
-
             KernelGrid.Children.Clear();
             KernelGrid.RowDefinitions.Clear();
             KernelGrid.ColumnDefinitions.Clear();
 
-            for (int i = 0; i < kernelSizeY; i++)
+            if (FilterComboBoxKernelEditingWindow.SelectedItem == null)
             {
-                KernelGrid.RowDefinitions.Add(new RowDefinition());
-            }
+                kernelValues = new int[kernelSizeX, kernelSizeY];
 
-            for (int j = 0; j < kernelSizeX; j++)
-            {
-                KernelGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-
-            for (int i = 0; i < kernelSizeY; i++)
-            {
-                for (int j = 0; j < kernelSizeX; j++)
+                for (int i = 0; i < kernelSizeX; i++)
                 {
-                    TextBox textBox = new TextBox();
-                    textBox.Text = "0";
-                    textBox.TextChanged += TextBox_TextChanged;
-                    textBox.Margin = new Thickness(1);
-                    textBox.TextAlignment = TextAlignment.Center;
-                    Grid.SetRow(textBox, i);
-                    Grid.SetColumn(textBox, j);
-                    KernelGrid.Children.Add(textBox);
+                    KernelGrid.RowDefinitions.Add(new RowDefinition());
+                }
+
+                for (int j = 0; j < kernelSizeY; j++)
+                {
+                    KernelGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                }
+
+                for (int i = 0; i < kernelSizeX; i++)
+                {
+                    for (int j = 0; j < kernelSizeY; j++)
+                    {
+                        TextBox textBox = new TextBox();
+                        textBox.Text = "0";
+                        textBox.TextChanged += TextBox_TextChanged;
+                        textBox.Margin = new Thickness(1);
+                        textBox.TextAlignment = TextAlignment.Center;
+                        Grid.SetRow(textBox, i);
+                        Grid.SetColumn(textBox, j);
+                        KernelGrid.Children.Add(textBox);
+                    }
                 }
             }
+            else
+            {
+                for (int i = 0; i < kernelValues.GetLength(0); i++)
+                {
+                    KernelGrid.RowDefinitions.Add(new RowDefinition());
+                }
 
+                for (int j = 0; j < kernelValues.GetLength(1); j++)
+                {
+                    KernelGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                }
+
+                for (int i = 0; i < kernelValues.GetLength(0); i++)
+                {
+                    for (int j = 0; j < kernelValues.GetLength(1); j++)
+                    {
+                        TextBox textBox = new TextBox
+                        {
+                            Text = kernelValues[i, j].ToString(),
+                            Margin = new Thickness(1),
+                            TextAlignment = TextAlignment.Center
+                        };
+                        textBox.TextChanged += TextBox_TextChanged;
+                        Grid.SetRow(textBox, i);
+                        Grid.SetColumn(textBox, j);
+                        KernelGrid.Children.Add(textBox);
+                    }
+                }
+            }
             KernelGrid.Visibility = Visibility.Visible;
         }
 
@@ -132,12 +150,11 @@ namespace CG_TASK_1
                 int columnIndex = Grid.GetColumn(textBox);
                 if (int.TryParse(textBox.Text, out int value))
                 {
+                    kernelValues[rowIndex, columnIndex] = 0;
                     kernelValues[rowIndex, columnIndex] = value;
                 }
             }
         }
-
-        private System.Drawing.Point anchorPoint;
 
         private void SetAnchorPointButton_Click(object sender, RoutedEventArgs e)
         {
@@ -161,7 +178,7 @@ namespace CG_TASK_1
                         }
                         else
                         {
-                            textBox.Background = System.Windows.Media.Brushes.White; // Reset other TextBoxes' color
+                            textBox.Background = System.Windows.Media.Brushes.White;
                         }
                     }
                 }
@@ -175,11 +192,58 @@ namespace CG_TASK_1
         private void AutoComputeDivisor_Click(object sender, RoutedEventArgs e)
         {
             int sum = 0;
-            foreach (var value in kernelValues)
+            if(kernelValues!=null)
             {
-                sum += value;
+                foreach (var value in kernelValues)
+                {
+                    sum += value;
+                }
             }
             DivisorTextBox.Text = sum.ToString();
+        }
+
+        private void FilterComboBoxKernelEditingWindow_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (FilterComboBoxKernelEditingWindow.SelectedItem != null)
+            {
+                SaveFilterName.Text = "";
+                KernelSizeXTextBox.Text = "3";
+                KernelSizeYTextBox.Text = "3";
+                string selectedFilterName = FilterComboBoxKernelEditingWindow.SelectedItem.ToString();
+                Filter selectedFilterObj = FilterManager.ConvolutionFilters.FirstOrDefault(filter => filter.Name == selectedFilterName);
+
+                if (selectedFilterObj != null)
+                {
+                    // Update kernel values, anchor point, divisor, and offset based on the selected filter
+                    kernelValues = selectedFilterObj.Kernel;
+                    anchorPoint = selectedFilterObj.Anchor;
+                    FilterAnchorPointTextBox.Text = $"{anchorPoint.X},{anchorPoint.Y}";
+                    DivisorTextBox.Text = selectedFilterObj.Divisor.ToString();
+                    OffsetTextBox.Text = selectedFilterObj.Offset.ToString();
+
+                    kernelSizeY = kernelValues.GetLength(0);
+                    kernelSizeX = kernelValues.GetLength(1);
+
+                    // Generate KernelGrid with the updated kernel values
+                    GenerateKernelGrid();
+
+                    // Highlight the anchor point in KernelGrid
+                    foreach (var textBox in KernelGrid.Children.OfType<TextBox>())
+                    {
+                        int textBoxX = Grid.GetColumn(textBox);
+                        int textBoxY = Grid.GetRow(textBox);
+
+                        if (textBoxX == anchorPoint.X && textBoxY == anchorPoint.Y)
+                        {
+                            textBox.Background = System.Windows.Media.Brushes.LightGreen;
+                        }
+                        else
+                        {
+                            textBox.Background = System.Windows.Media.Brushes.White;
+                        }
+                    }
+                }
+            }
         }
 
         public void ApplyFilterButton_Click(object sender, RoutedEventArgs e)
@@ -232,7 +296,7 @@ namespace CG_TASK_1
             }
             else
             {
-                MessageBox.Show("Please enter a name, divisor, and offset for the filter.");
+                MessageBox.Show("Please enter a filter name");
             }
         }
     }

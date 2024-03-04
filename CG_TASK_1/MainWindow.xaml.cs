@@ -29,12 +29,12 @@ namespace CG_TASK_1
         public static Bitmap originalImage;
         public static Bitmap filteredImage;
         private Stack<Bitmap> filterStack = new Stack<Bitmap>();
-        private KernelEditingWindow kernelEditingWindow;
 
         public MainWindow()
         {
             InitializeComponent();
-            WindowState = WindowState.Maximized;            
+            WindowState = WindowState.Maximized;
+            FilterManager.AddPredefinedFilters();
         }
 
         private void LoadImage_Click(object sender, RoutedEventArgs e)
