@@ -67,6 +67,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="KMeansWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="KValWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -81,6 +89,12 @@
     </Compile>
     <Compile Include="KernelEditingWindow.xaml.cs">
       <DependentUpon>KernelEditingWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="KMeansWindow.xaml.cs">
+      <DependentUpon>KMeansWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="KValWindow.xaml.cs">
+      <DependentUpon>KValWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

@@ -68,7 +68,9 @@ namespace CG_TASK_1
             "Gaussian Blur",
             "Sharpen",
             "Edge Detection",
-            "Emboss"
+            "Emboss",
+            "Median",
+            "GreyScale"
         };
 
 

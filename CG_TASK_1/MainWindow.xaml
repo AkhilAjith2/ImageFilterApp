@@ -99,7 +99,7 @@
                 </Button.Style>
             </Button>
 
-            <Button Content="Apply Median Filter" Click="ApplyMedianFilter_Click" Margin="5">
+            <Button Content="Apply Random Dithering" Click="ApplyRandomDithering_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Background" Value="Gray"/>
@@ -112,6 +112,18 @@
                 </Button.Style>
             </Button>
 
+            <Button Content="Apply K-Means" Click="ApplyKMeansButton_Click" Margin="5">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="Purple"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </Button.Style>
+            </Button>
         </StackPanel>
     </Grid>
 </Window>

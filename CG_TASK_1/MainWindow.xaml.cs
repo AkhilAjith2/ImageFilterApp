@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Media.Media3D;
+using Wpf.Ui.Controls;
 
 namespace CG_TASK_1
 {
@@ -66,12 +67,12 @@ namespace CG_TASK_1
                         encoder.Frames.Add(BitmapFrame.Create((BitmapSource)FilteredImage.Source));
                         encoder.Save(fileStream);
                     }
-                    MessageBox.Show("Image saved successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show("Image saved successfully.", "Success", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             else
             {
-                MessageBox.Show("Please apply a filter to the image first.");
+                System.Windows.MessageBox.Show("Please apply a filter to the image first.");
             }
         }
 
@@ -95,7 +96,7 @@ namespace CG_TASK_1
             }
             else
             {
-                MessageBox.Show("Please load an image first.");
+                System.Windows.MessageBox.Show("Please load an image first.");
             }
         }
 
@@ -120,7 +121,7 @@ namespace CG_TASK_1
             }
             else
             {
-                MessageBox.Show("No changes to undo.");
+                System.Windows.MessageBox.Show("No changes to undo.");
             }
         }
 
@@ -151,17 +152,62 @@ namespace CG_TASK_1
             }
             else
             {
-                MessageBox.Show("Please load an image first.");
+                System.Windows.MessageBox.Show("Please load an image first.");
             }
         }
 
-        private void ApplyMedianFilter_Click(object sender, RoutedEventArgs e)
+        /*private void ApplyMedianFilter_Click(object sender, RoutedEventArgs e)
         {
             Bitmap filteredImageCopy = Filters.ApplyMedianFilter(filteredImage);
             filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
             FilteredImage.Source = filteredBitmap;
             filterStack.Push(filteredImageCopy);
             filteredImage = new Bitmap(filteredImageCopy);
+        }*/
+
+        private void ApplyRandomDithering_Click(object sender, RoutedEventArgs e)
+        {
+            KValWindow kWindow = new KValWindow();
+            if (kWindow.ShowDialog() == true)
+            {
+                if (int.TryParse(kWindow.KTextBox.Text, out int k))
+                {
+                    Bitmap filteredImageCopy = Filters.ApplyRandomDithering(filteredImage, k);
+                    filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
+                    FilteredImage.Source = filteredBitmap;
+                    filterStack.Push(filteredImageCopy);
+                    filteredImage = new Bitmap(filteredImageCopy);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Invalid value for K. Please enter a valid integer value.");
+                }
+            }
+        }
+        
+/*        private void ConvertToGrayscale_Click(object sender, RoutedEventArgs e)
+        {
+            Bitmap filteredImageCopy = Filters.ConvertToGrayScale(filteredImage);
+            filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
+            FilteredImage.Source = filteredBitmap;
+            filterStack.Push(filteredImageCopy);
+            filteredImage = new Bitmap(filteredImageCopy);
+        }*/
+
+        private void ApplyKMeansButton_Click(object sender, RoutedEventArgs e)
+        {
+            KMeansWindow kMeansWindow = new KMeansWindow();
+            bool? result = kMeansWindow.ShowDialog(); // Show the window as a dialog
+
+            if (result == true) // Check if the user clicked "Apply"
+            {
+                int k = kMeansWindow.K;
+                int maxIterations = kMeansWindow.MaxIterations;
+
+                // Call the method to apply K-Means with the specified parameters
+                BitmapSource filteredImage = KMeansColorQuantization.ApplyKMeans((BitmapSource)FilteredImage.Source, k, maxIterations);
+                FilteredImage.Source = filteredImage;
+            }
         }
     }
 }

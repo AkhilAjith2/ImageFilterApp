@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Windows.Media;
+using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace CG_TASK_1
 {
@@ -161,13 +163,14 @@ namespace CG_TASK_1
 
         public static Bitmap ApplyBlur(Bitmap image)
         {
-            Filter blurFilter = new Filter("Blur", new int[,] {
+            /*Filter blurFilter = new Filter("Blur", new int[,] {
                 { 1, 1, 1 },
                 { 1, 1, 1 },
                 { 1, 1, 1 }
-            }, new System.Drawing.Point(1, 1), 9, 0);
+            }, new System.Drawing.Point(1, 1), 9, 0);*/
             FilterManager.ConvolutionFilters.Add(FilterWindow.blurFilter);
-            return blurFilter.ApplyFilter(image);
+            FilterManager.ConvolutionFilters.Add(FilterWindow.blurFilter);
+            return FilterWindow.blurFilter.ApplyFilter(image);
         }
 
         public static Bitmap ApplyGaussianBlur(Bitmap image)
@@ -250,6 +253,10 @@ namespace CG_TASK_1
                             return ApplyEdgeDetection(image);
                         case 9:
                             return ApplyEmboss(image);
+                        case 10:
+                            return ApplyMedianFilter(image);
+                        case 11:
+                            return ConvertToGrayScale(image); 
                         default:
                             return image;
                     }
@@ -414,6 +421,120 @@ namespace CG_TASK_1
         private static int GetIntensity(System.Drawing.Color color)
         {
             return (color.R + color.G + color.B) / 3;
+        }
+
+        public static Bitmap ApplyRandomDithering(Bitmap image, int k)
+        {
+            BitmapSource bitmapSource = ConvertBitmapToBitmapSource(image);
+            BitmapSource filteredBitmapSource = ApplyRandomDithering(bitmapSource, k);
+            MainWindow.filteredImage = ConvertBitmapSourceToBitmap(filteredBitmapSource);
+            return MainWindow.filteredImage;
+        }
+
+        public static BitmapSource ApplyRandomDithering(BitmapSource originalImage, int k)
+        {
+            int width = originalImage.PixelWidth;
+            int height = originalImage.PixelHeight;
+
+            byte[] pixels = new byte[height * width * 4];
+            originalImage.CopyPixels(pixels, width * 4, 0);
+
+            Random rand = new Random();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = (y * width + x) * 4;
+                    byte originalIntensity = (byte)((0.299 * pixels[index + 2]) + (0.587 * pixels[index + 1]) + (0.114 * pixels[index]));
+                    int newIntensity = ApplyDithering(originalIntensity, rand, k);
+                    byte newColor = (byte)newIntensity;
+
+                    pixels[index] = newColor;         
+                    pixels[index + 1] = newColor;    
+                    pixels[index + 2] = newColor;
+                    pixels[index + 3] = 255;
+                }
+            }
+
+            WriteableBitmap ditheredImage = new WriteableBitmap(width, height, originalImage.DpiX, originalImage.DpiY, PixelFormats.Bgra32, null);
+            ditheredImage.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
+
+            return ditheredImage;
+        }
+
+        private static int ApplyDithering(int intensity, Random rand, int k)
+        {
+            double noise = (rand.NextDouble() - 0.5) * (255.0 / k);
+            int ditheredValue = intensity + (int)Math.Round(noise);
+
+            if (ditheredValue < 0)
+                ditheredValue = 0;
+            else if (ditheredValue > 255)
+                ditheredValue = 255;
+
+            return ditheredValue;
+        }
+
+        /*public static Bitmap ApplyRandomDithering(Bitmap originalImage, int k)
+        {
+            Bitmap ditheredImage = new Bitmap(originalImage.Width, originalImage.Height);
+            Random rand = new Random();
+
+            // Iterate through each pixel
+            for (int y = 0; y < originalImage.Height; y++)
+            {
+                for (int x = 0; x < originalImage.Width; x++)
+                {
+                    System.Drawing.Color originalColor = originalImage.GetPixel(x, y);
+
+                    // Convert to grayscale intensity
+                    int intensity = (int)(originalColor.R * 0.299 + originalColor.G * 0.587 + originalColor.B * 0.114);
+
+                    // Apply dithering
+                    int newIntensity = ApplyDithering(intensity, rand, k);
+
+                    // Convert back to color
+                    System.Drawing.Color newColor = System.Drawing.Color.FromArgb(newIntensity, newIntensity, newIntensity);
+
+                    // Set pixel in the dithered image
+                    ditheredImage.SetPixel(x, y, newColor);
+                }
+            }
+
+            return ditheredImage;
+        }
+
+        private static int ApplyDithering(int intensity, Random rand, int k)
+        {
+            double noise = (rand.NextDouble() - 0.5) * (255.0 / k);
+            int ditheredValue = intensity + (int)Math.Round(noise);
+
+            // Clamp the value to the valid range [0, 255]
+            if (ditheredValue < 0)
+                ditheredValue = 0;
+            else if (ditheredValue > 255)
+                ditheredValue = 255;
+
+            return ditheredValue;
+        }*/
+
+        public static Bitmap ConvertToGrayScale(Bitmap originalImage)
+        {
+            Bitmap grayScaleImage = new Bitmap(originalImage.Width, originalImage.Height);
+
+            for (int y = 0; y < originalImage.Height; y++)
+            {
+                for (int x = 0; x < originalImage.Width; x++)
+                {
+                    System.Drawing.Color originalColor = originalImage.GetPixel(x, y);
+                    int intensity = (int)(0.299 * originalColor.R + 0.587 * originalColor.G + 0.114 * originalColor.B);
+                    System.Drawing.Color grayColor = System.Drawing.Color.FromArgb(intensity, intensity, intensity);
+                    grayScaleImage.SetPixel(x, y, grayColor);
+                }
+            }
+
+            return grayScaleImage;
         }
     }
 }
