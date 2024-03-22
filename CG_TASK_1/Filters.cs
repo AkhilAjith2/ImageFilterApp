@@ -163,11 +163,11 @@ namespace CG_TASK_1
 
         public static Bitmap ApplyBlur(Bitmap image)
         {
-            /*Filter blurFilter = new Filter("Blur", new int[,] {
+            Filter blurFilter = new Filter("Blur", new int[,] {
                 { 1, 1, 1 },
                 { 1, 1, 1 },
                 { 1, 1, 1 }
-            }, new System.Drawing.Point(1, 1), 9, 0);*/
+            }, new System.Drawing.Point(1, 1), 9, 0);
             FilterManager.ConvolutionFilters.Add(FilterWindow.blurFilter);
             FilterManager.ConvolutionFilters.Add(FilterWindow.blurFilter);
             return FilterWindow.blurFilter.ApplyFilter(image);
@@ -426,12 +426,13 @@ namespace CG_TASK_1
         public static Bitmap ApplyRandomDithering(Bitmap image, int k)
         {
             BitmapSource bitmapSource = ConvertBitmapToBitmapSource(image);
-            BitmapSource filteredBitmapSource = ApplyRandomDithering(bitmapSource, k);
+            bool isGreyscale = IsGrayscale(image);
+            BitmapSource filteredBitmapSource = ApplyRandomDithering(bitmapSource, k,isGreyscale);
             MainWindow.filteredImage = ConvertBitmapSourceToBitmap(filteredBitmapSource);
             return MainWindow.filteredImage;
         }
 
-        public static BitmapSource ApplyRandomDithering(BitmapSource originalImage, int k)
+        public static BitmapSource ApplyRandomDithering(BitmapSource originalImage, int k, bool isGreyscale)
         {
             int width = originalImage.PixelWidth;
             int height = originalImage.PixelHeight;
@@ -446,14 +447,32 @@ namespace CG_TASK_1
                 for (int x = 0; x < width; x++)
                 {
                     int index = (y * width + x) * 4;
-                    byte originalIntensity = (byte)((0.299 * pixels[index + 2]) + (0.587 * pixels[index + 1]) + (0.114 * pixels[index]));
-                    int newIntensity = ApplyDithering(originalIntensity, rand, k);
-                    byte newColor = (byte)newIntensity;
 
-                    pixels[index] = newColor;         
-                    pixels[index + 1] = newColor;    
-                    pixels[index + 2] = newColor;
-                    pixels[index + 3] = 255;
+                    if (isGreyscale)
+                    {
+                        byte originalIntensity = (byte)((0.299 * pixels[index + 2]) + (0.587 * pixels[index + 1]) + (0.114 * pixels[index]));
+                        int newIntensity = ApplyDithering(originalIntensity, rand, k);
+                        byte newColor = (byte)newIntensity;
+
+                        pixels[index] = newColor;
+                        pixels[index + 1] = newColor;
+                        pixels[index + 2] = newColor;
+                        pixels[index + 3] = 255;
+                    }
+                    else
+                    {
+                        byte originalRed = pixels[index + 2];
+                        byte originalGreen = pixels[index + 1];
+                        byte originalBlue = pixels[index];
+
+                        byte newRed = (byte)ApplyDithering(originalRed, rand, k);
+                        byte newGreen = (byte)ApplyDithering(originalGreen, rand, k);
+                        byte newBlue = (byte)ApplyDithering(originalBlue, rand, k);
+
+                        pixels[index + 2] = newRed;
+                        pixels[index + 1] = newGreen;
+                        pixels[index] = newBlue;
+                    }
                 }
             }
 
@@ -461,6 +480,24 @@ namespace CG_TASK_1
             ditheredImage.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
 
             return ditheredImage;
+        }
+
+
+        private static bool IsGrayscale(Bitmap image)
+        {
+
+            for (int y = 0; y < image.Height; y++)
+            {
+                for (int x = 0; x < image.Width; x++)
+                {
+                    System.Drawing.Color pixelColor = image.GetPixel(x, y);
+                    if (pixelColor.R != pixelColor.G || pixelColor.R != pixelColor.B)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         private static int ApplyDithering(int intensity, Random rand, int k)

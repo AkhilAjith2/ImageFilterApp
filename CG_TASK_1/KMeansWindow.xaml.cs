@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,8 +31,10 @@ namespace CG_TASK_1
 
             for (int iteration = 0; iteration < maxIterations; iteration++)
             {
-                Dictionary<Color, List<Color>> clusters = AssignPixelsToCentroids(writeableBitmap, centroids);
-                List<Color> newCentroids = UpdateCentroids(clusters);
+                /*Dictionary<Color, List<Color>> clusters = AssignPixelsToCentroids(writeableBitmap, centroids);
+                List<Color> newCentroids = UpdateCentroids(clusters);*/
+
+                List<Color> newCentroids = UpdateCentroidsAndAssignPixels(writeableBitmap, centroids);
 
                 if (CentroidsConverged(centroids, newCentroids))
                 {
@@ -52,8 +55,6 @@ namespace CG_TASK_1
             List<Color> centroids = new List<Color>();
 
             Random rand = new Random();
-            int width = bitmap.PixelWidth;
-            int height = bitmap.PixelHeight;
 
             pixels = GetPixels(bitmap);
 
@@ -66,14 +67,137 @@ namespace CG_TASK_1
             return centroids;
         }
 
-        private static Dictionary<Color, List<Color>> AssignPixelsToCentroids(WriteableBitmap bitmap, List<Color> centroids)
+        /*private static List<Color> UpdateCentroidsAndAssignPixels(WriteableBitmap bitmap, List<Color> centroids)
+        {
+            int width = bitmap.PixelWidth;
+            int height = bitmap.PixelHeight;
+            int[] centroidIndices = new int[pixels.Length / 4];
+
+            int[] totalR = new int[centroids.Count];
+            int[] totalG = new int[centroids.Count];
+            int[] totalB = new int[centroids.Count];
+            int[] clusterCounts = new int[centroids.Count];
+
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                Color pixelColor = Color.FromArgb(pixels[i + 3], pixels[i + 2], pixels[i + 1], pixels[i]);
+                Color closestCentroid = FindClosestCentroid(pixelColor, centroids);
+                int closestCentroidIndex = centroids.IndexOf(closestCentroid);
+                centroidIndices[i / 4] = closestCentroidIndex;
+
+                totalR[closestCentroidIndex] += pixelColor.R;
+                totalG[closestCentroidIndex] += pixelColor.G;
+                totalB[closestCentroidIndex] += pixelColor.B;
+                clusterCounts[closestCentroidIndex]++;
+            }
+            List<Color> newCentroids = new List<Color>();
+            for (int i = 0; i < centroids.Count; i++)
+            {
+                byte newR = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalR[i] / clusterCounts[i]);
+                byte newG = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalG[i] / clusterCounts[i]);
+                byte newB = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalB[i] / clusterCounts[i]);
+                newCentroids.Add(Color.FromRgb(newR, newG, newB));
+            }
+
+            return newCentroids;
+        }*/
+
+        /*private static List<Color> UpdateCentroidsAndAssignPixels(WriteableBitmap bitmap, List<Color> centroids)
+        {
+            int width = bitmap.PixelWidth;
+            int height = bitmap.PixelHeight;
+            int[] centroidIndices = new int[width * height];
+            int[] totalR = new int[centroids.Count];
+            int[] totalG = new int[centroids.Count];
+            int[] totalB = new int[centroids.Count];
+            int[] clusterCounts = new int[centroids.Count];
+
+            Parallel.For(0, height, y =>
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = y * width + x;
+                    Color pixelColor = Color.FromArgb(pixels[index * 4 + 3], pixels[index * 4 + 2], pixels[index * 4 + 1], pixels[index * 4]);
+                    Color closestCentroid = FindClosestCentroid(pixelColor, centroids);
+                    int closestCentroidIndex = centroids.IndexOf(closestCentroid);
+                    centroidIndices[index] = closestCentroidIndex;
+
+                    totalR[closestCentroidIndex] += pixelColor.R;
+                    totalG[closestCentroidIndex] += pixelColor.G;
+                    totalB[closestCentroidIndex] += pixelColor.B;
+                    clusterCounts[closestCentroidIndex]++;
+                }
+            });
+
+            List<Color> newCentroids = new List<Color>();
+            for (int i = 0; i < centroids.Count; i++)
+            {
+                byte newR = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalR[i] / clusterCounts[i]);
+                byte newG = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalG[i] / clusterCounts[i]);
+                byte newB = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalB[i] / clusterCounts[i]);
+                newCentroids.Add(Color.FromRgb(newR, newG, newB));
+            }
+
+            return newCentroids;
+        }*/
+
+        private static List<Color> UpdateCentroidsAndAssignPixels(WriteableBitmap bitmap, List<Color> centroids)
+        {
+            int width = bitmap.PixelWidth;
+            int height = bitmap.PixelHeight;
+            int[] centroidIndices = new int[width * height];
+
+            byte[] pixels = GetPixels(bitmap);
+
+            int[] totalR = new int[centroids.Count];
+            int[] totalG = new int[centroids.Count];
+            int[] totalB = new int[centroids.Count];
+            int[] clusterCounts = new int[centroids.Count];
+
+            int batchSize = 16;
+            int numBatches = (width * height + batchSize - 1) / batchSize;
+
+            Parallel.For(0, numBatches, batchIndex =>
+            {
+                int startIdx = batchIndex * batchSize;
+                int endIdx = Math.Min((batchIndex + 1) * batchSize, width * height);
+
+                for (int index = startIdx; index < endIdx; index++)
+                {
+                    int x = index % width;
+                    int y = index / width;
+
+                    Color pixelColor = Color.FromArgb(pixels[index * 4 + 3], pixels[index * 4 + 2], pixels[index * 4 + 1], pixels[index * 4]);
+                    Color closestCentroid = FindClosestCentroid(pixelColor, centroids);
+                    int closestCentroidIndex = centroids.IndexOf(closestCentroid);
+
+                    centroidIndices[index] = closestCentroidIndex;
+
+                    Interlocked.Add(ref totalR[closestCentroidIndex], pixelColor.R);
+                    Interlocked.Add(ref totalG[closestCentroidIndex], pixelColor.G);
+                    Interlocked.Add(ref totalB[closestCentroidIndex], pixelColor.B);
+                    Interlocked.Increment(ref clusterCounts[closestCentroidIndex]);
+                }
+            });
+
+            List<Color> newCentroids = new List<Color>();
+            for (int i = 0; i < centroids.Count; i++)
+            {
+                byte newR = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalR[i] / clusterCounts[i]);
+                byte newG = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalG[i] / clusterCounts[i]);
+                byte newB = clusterCounts[i] == 0 ? (byte)0 : (byte)(totalB[i] / clusterCounts[i]);
+                newCentroids.Add(Color.FromRgb(newR, newG, newB));
+            }
+
+            return newCentroids;
+        }
+
+        /*private static Dictionary<Color, List<Color>> AssignPixelsToCentroids(WriteableBitmap bitmap, List<Color> centroids)
         {
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
             // Use an array for centroids and another array which keeps for each pixel the index of the centroid
             Dictionary<Color, List<Color>> clusters = new Dictionary<Color, List<Color>>();
-
-           /* byte[] pixels = GetPixels(bitmap);*/
 
             foreach (Color centroid in centroids)
             {
@@ -89,32 +213,6 @@ namespace CG_TASK_1
             }
 
             return clusters;
-        }
-
-        private static Color FindClosestCentroid(Color color, List<Color> centroids)
-        {
-            double minDistance = double.MaxValue;
-            Color closestCentroid = Colors.Black;
-
-            foreach (Color centroid in centroids)
-            {
-                double distance = ColorDistance(color, centroid);
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    closestCentroid = centroid;
-                }
-            }
-
-            return closestCentroid;
-        }
-
-        private static double ColorDistance(Color c1, Color c2)
-        {
-            double dr = c1.R - c2.R;
-            double dg = c1.G - c2.G;
-            double db = c1.B - c2.B;
-            return Math.Sqrt(dr * dr + dg * dg + db * db);
         }
 
         private static List<Color> UpdateCentroids(Dictionary<Color, List<Color>> clusters)
@@ -143,6 +241,32 @@ namespace CG_TASK_1
             }
 
             return newCentroids;
+        }*/
+
+        private static Color FindClosestCentroid(Color color, List<Color> centroids)
+        {
+            double minDistance = double.MaxValue;
+            Color closestCentroid = Colors.Black;
+
+            foreach (Color centroid in centroids)
+            {
+                double distance = ColorDistance(color, centroid);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestCentroid = centroid;
+                }
+            }
+
+            return closestCentroid;
+        }
+
+        private static double ColorDistance(Color c1, Color c2)
+        {
+            double dr = c1.R - c2.R;
+            double dg = c1.G - c2.G;
+            double db = c1.B - c2.B;
+            return Math.Sqrt(dr * dr + dg * dg + db * db);
         }
 
         private static bool CentroidsConverged(List<Color> centroids, List<Color> newCentroids)
@@ -159,7 +283,6 @@ namespace CG_TASK_1
         {
             int width = bitmap.PixelWidth;
             int height = bitmap.PixelHeight;
-            /*byte[] pixels = GetPixels(bitmap);*/
 
             for (int i = 0; i < pixels.Length; i += 4)
             {
@@ -174,7 +297,6 @@ namespace CG_TASK_1
             bitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
         }
 
-        // Only call this once in the beginning
         private static byte[] GetPixels(WriteableBitmap bitmap)
         {
             int width = bitmap.PixelWidth;
@@ -369,7 +491,7 @@ namespace CG_TASK_1
             if (int.TryParse(KTextBox.Text, out int k))
             {
                 K = k;
-                MaxIterations = 100;
+                MaxIterations = 1000;
                 DialogResult = true;
         }
             else
