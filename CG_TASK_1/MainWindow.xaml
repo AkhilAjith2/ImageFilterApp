@@ -99,6 +99,19 @@
                 </Button.Style>
             </Button>
 
+            <Button Content="Apply YCbCr Ditherning" Click="ApplyYCbCrDitherning_Click" Margin="5">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#454545"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </Button.Style>
+            </Button>
+
             <Button Content="Undo" Click="Undo_Click" Margin="5">
                 <Button.Style>
                     <Style TargetType="Button">

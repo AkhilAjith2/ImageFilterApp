@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using System.Windows.Input;
 
 namespace CG_TASK_1
 {
@@ -169,8 +170,7 @@ namespace CG_TASK_1
                 { 1, 1, 1 }
             }, new System.Drawing.Point(1, 1), 9, 0);
             FilterManager.ConvolutionFilters.Add(FilterWindow.blurFilter);
-            FilterManager.ConvolutionFilters.Add(FilterWindow.blurFilter);
-            return FilterWindow.blurFilter.ApplyFilter(image);
+            return blurFilter.ApplyFilter(image);
         }
 
         public static Bitmap ApplyGaussianBlur(Bitmap image)
@@ -441,17 +441,18 @@ namespace CG_TASK_1
             originalImage.CopyPixels(pixels, width * 4, 0);
 
             Random rand = new Random();
-
+           
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
+                    double temp = rand.NextDouble();
                     int index = (y * width + x) * 4;
 
                     if (isGreyscale)
                     {
                         byte originalIntensity = (byte)((0.299 * pixels[index + 2]) + (0.587 * pixels[index + 1]) + (0.114 * pixels[index]));
-                        int newIntensity = ApplyDithering(originalIntensity, rand, k);
+                        int newIntensity = ApplyDithering(originalIntensity, temp, k);
                         byte newColor = (byte)newIntensity;
 
                         pixels[index] = newColor;
@@ -465,9 +466,11 @@ namespace CG_TASK_1
                         byte originalGreen = pixels[index + 1];
                         byte originalBlue = pixels[index];
 
-                        byte newRed = (byte)ApplyDithering(originalRed, rand, k);
-                        byte newGreen = (byte)ApplyDithering(originalGreen, rand, k);
-                        byte newBlue = (byte)ApplyDithering(originalBlue, rand, k);
+                        
+
+                        byte newRed = (byte)ApplyDithering(originalRed, temp, k);
+                        byte newGreen = (byte)ApplyDithering(originalGreen, temp, k);
+                        byte newBlue = (byte)ApplyDithering(originalBlue, temp, k);
 
                         pixels[index + 2] = newRed;
                         pixels[index + 1] = newGreen;
@@ -500,18 +503,19 @@ namespace CG_TASK_1
             return true;
         }
 
-        private static int ApplyDithering(int intensity, Random rand, int k)
+        private static int ApplyDithering(int intensity, double randDouble, int k)
         {
-            double noise = (rand.NextDouble() - 0.5) * (255.0 / k);
-            int ditheredValue = intensity + (int)Math.Round(noise);
+            int index = (int)Math.Floor(intensity * (k - 1) / 255.0);
 
-            if (ditheredValue < 0)
-                ditheredValue = 0;
-            else if (ditheredValue > 255)
-                ditheredValue = 255;
+            if (index < k - 1 && (intensity * (k - 1) / 255.0 - index) > randDouble)
+            {
+                index++;
+            }
 
-            return ditheredValue;
+            int quantizedIntensity = index * 255 / (k - 1);
+            return quantizedIntensity;
         }
+
 
         /*public static Bitmap ApplyRandomDithering(Bitmap originalImage, int k)
         {
@@ -573,5 +577,64 @@ namespace CG_TASK_1
 
             return grayScaleImage;
         }
+
+        public static Bitmap ApplyDitheringToYCbCr(Bitmap image, int k)
+        {
+            BitmapSource bitmapSource = ConvertBitmapToBitmapSource(image);
+            BitmapSource filteredBitmapSource = ApplyDitheringToYCbCr(bitmapSource, k);
+            MainWindow.filteredImage = ConvertBitmapSourceToBitmap(filteredBitmapSource);
+            return MainWindow.filteredImage;
+        }
+
+        public static BitmapSource ApplyDitheringToYCbCr(BitmapSource originalImage, int k)
+        {
+            int width = originalImage.PixelWidth;
+            int height = originalImage.PixelHeight;
+
+            byte[] pixels = new byte[height * width * 4];
+            originalImage.CopyPixels(pixels, width * 4, 0);
+
+            WriteableBitmap ditheredImage = new WriteableBitmap(width, height, originalImage.DpiX, originalImage.DpiY, PixelFormats.Bgra32, null);
+            Random rand = new Random();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    double temp = rand.NextDouble();
+                    int index = (y * width + x) * 4;
+
+                    double originalR = pixels[index + 2];
+                    double originalG = pixels[index + 1];
+                    double originalB = pixels[index];
+
+                    double yPrime = 0.299 * originalR + 0.587 * originalG + 0.114 * originalB;
+                    double cb = 128 - 0.168736 * originalR - 0.331264 * originalG + 0.5 * originalB;
+                    double cr = 128 + 0.5 * originalR - 0.418688 * originalG - 0.081312 * originalB;
+
+                    double newYPrime = ApplyDithering((int)Math.Round(yPrime), temp, k);
+                    double newCb = ApplyDithering((int)Math.Round(cb), temp, k);
+                    double newCr = ApplyDithering((int)Math.Round(cr), temp, k);
+
+                    int newR = (int)(newYPrime + 1.402 * (newCr - 128));
+                    int newG = (int)(newYPrime - 0.344136 * (newCb - 128) - 0.714136 * (newCr - 128));
+                    int newB = (int)(newYPrime + 1.772 * (newCb - 128));
+
+                    newR = Math.Max(0, Math.Min(255, newR));
+                    newG = Math.Max(0, Math.Min(255, newG));
+                    newB = Math.Max(0, Math.Min(255, newB));
+
+                    pixels[index + 2] = (byte)newR;
+                    pixels[index + 1] = (byte)newG;
+                    pixels[index] = (byte)newB;
+                    pixels[index + 3] = 255;
+                }
+            }
+
+            ditheredImage.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
+
+            return ditheredImage;
+        }
+
     }
 }

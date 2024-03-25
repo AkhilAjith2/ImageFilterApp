@@ -156,15 +156,6 @@ namespace CG_TASK_1
             }
         }
 
-        /*private void ApplyMedianFilter_Click(object sender, RoutedEventArgs e)
-        {
-            Bitmap filteredImageCopy = Filters.ApplyMedianFilter(filteredImage);
-            filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
-            FilteredImage.Source = filteredBitmap;
-            filterStack.Push(filteredImageCopy);
-            filteredImage = new Bitmap(filteredImageCopy);
-        }*/
-
         private void ApplyRandomDithering_Click(object sender, RoutedEventArgs e)
         {
             KValWindow kWindow = new KValWindow();
@@ -184,29 +175,39 @@ namespace CG_TASK_1
                 }
             }
         }
-        
-/*        private void ConvertToGrayscale_Click(object sender, RoutedEventArgs e)
-        {
-            Bitmap filteredImageCopy = Filters.ConvertToGrayScale(filteredImage);
-            filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
-            FilteredImage.Source = filteredBitmap;
-            filterStack.Push(filteredImageCopy);
-            filteredImage = new Bitmap(filteredImageCopy);
-        }*/
 
         private void ApplyKMeansButton_Click(object sender, RoutedEventArgs e)
         {
             KMeansWindow kMeansWindow = new KMeansWindow();
-            bool? result = kMeansWindow.ShowDialog(); // Show the window as a dialog
+            bool? result = kMeansWindow.ShowDialog(); 
 
-            if (result == true) // Check if the user clicked "Apply"
+            if (result == true) 
             {
                 int k = kMeansWindow.K;
                 int maxIterations = kMeansWindow.MaxIterations;
 
-                // Call the method to apply K-Means with the specified parameters
                 BitmapSource filteredImage = KMeansColorQuantization.ApplyKMeans((BitmapSource)FilteredImage.Source, k, maxIterations);
                 FilteredImage.Source = filteredImage;
+            }
+        }
+
+        private void ApplyYCbCrDitherning_Click(object sender, RoutedEventArgs e)
+        {
+            KValWindow kWindow = new KValWindow();
+            if (kWindow.ShowDialog() == true)
+            {
+                if (int.TryParse(kWindow.KTextBox.Text, out int k))
+                {
+                    Bitmap filteredImageCopy = Filters.ApplyDitheringToYCbCr(filteredImage, k);
+                    filteredBitmap = Filters.ConvertBitmapToBitmapImage(filteredImageCopy);
+                    FilteredImage.Source = filteredBitmap;
+                    filterStack.Push(filteredImageCopy);
+                    filteredImage = new Bitmap(filteredImageCopy);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Invalid value for K. Please enter a valid integer value.");
+                }
             }
         }
     }
